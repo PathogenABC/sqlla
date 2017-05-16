@@ -17,8 +17,8 @@ public class UserBean {
     private int gender;
     private Date birthdate;
     
-    // 使用 SqllaColumnAlias 标识后的属性使用 alias 的值来对应表中的列，
-    // 没有标识时直接使用属性的名字来对应.
+    // 使用 SqllaColumnAlias 标识后的属性使用 alias 的值来对应表中的列
+    // 没有标识时直接使用属性的名字来对应
     @SqllaColumnAlias("grade")
     private float score;
     
@@ -78,7 +78,8 @@ boolean exists = dao.userExist("李多情");
 boolean inserted = dao.insertUser("wxid_daskjfj_jnka013njsaf", "李明洙", "1324113361*");
 
 // 获取第一个用户, 不建议这种方式获取第一个用户，因为结果集实际上读了很多条。建议使用sql来过滤(limit 1)
-// ViewObject 是结果集视图对象, 代表结果集的一行, 类似于 JSONObject, 不同点在于 ViewObject 是扁平的，内部没有多层级和数组.
+// ViewObject 是结果集视图对象, 代表结果集的一行, 类似于 JSONObject
+// 不同点在于 ViewObject 是扁平的，内部没有多层级和数组
 ViewObject user = dao.selectFirstUser();
 
 // 获取所有用户
@@ -96,7 +97,7 @@ List<ViewObject> userList = dao.selectUsers();
   
   * PrimitiveTypeConverterFactory		转换基础数据类型
   * SqllaEntityConverterFactory 		转换 @SqllaEntity 表示的实体类和其列表(List)
-  * ViewObjectConverterFactory		转换 ViewObject 结果集视图和其列表(List<ViewObject>)
+  * ViewObjectConverterFactory		    转换 ViewObject 结果集视图和其列表(List<ViewObject>)
   
 > 外部可以自定义针对自己特定类型的转换工厂 (ResultSet --> CustomBeanType)，自定义的转换工厂 return !null 时会拦截系统预置的转换工厂。
 
