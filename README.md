@@ -2,8 +2,8 @@
 一个数据库的 ORM 微型库，提供简单高可用的API来操作数据库。
 > Sqlla 拥有极少的API，使用方式简单。让使用者不需要关心数据库操作的具体细节，只需专注SQL和业务逻辑。有别于MyBatis的XML配置方式，Sqlla默认采用少量的纯注解的方式来配置实体类，当然如果自定义转换器，也可摒弃默认的注解方式，实现自定义的方式配置实体类。系统还提供了另外一种实体方式，类似于 JSONObject 的万能实体 ViewObject。
 
-<br/>
-#### 使用指南:
+
+### 使用指南:
 
 实体类, 必须要用 @SqllaEntity 标识
 
@@ -85,8 +85,8 @@ ViewObject user = dao.selectFirstUser();
 List<ViewObject> userList = dao.selectUsers();
 ```
 
-<br/>
-#### 深入使用
+
+### 深入使用
 
   Sqlla.Builder 提供 pool(poolinstance) 和 addConverterFactory(factory) 等方法。
   
@@ -100,7 +100,7 @@ List<ViewObject> userList = dao.selectUsers();
   
 > 外部可以自定义针对自己特定类型的转换工厂 (ResultSet --> CustomBeanType)，自定义的转换工厂 return !null 时会拦截系统预置的转换工厂。
 
-<br/>
-#### 事物支持
+
+### 事物支持
 
 <tab/>当前版本没有对事物进行支持，于Spring的配合暂时没有做过测试。
