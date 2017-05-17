@@ -118,21 +118,21 @@ boolean deleted = dao.deleteUserById("uid_xsdvo6ek93_1xz");
 
 ```
 sqlla.transact(new VoidTransaction() {
-	@Override
-	protected void transact0() throws Exception {
-		sqlla.transact(new VoidTransaction() {
-    		@Override
-			protected void transact0() throws Exception {
-				boolean yes = api.insertUser("test_1234", "赵六", "13241133616");
-				System.out.println("insert user " + (yes ? "success" : "failed"));
-          }
-		});
+    @Override
+    protected void transact0() throws Exception {
+        sqlla.transact(new VoidTransaction() {
+            @Override
+            protected void transact0() throws Exception {
+                boolean yes = api.insertUser("test_1234", "赵六", "13241133616");
+                System.out.println("insert user " + (yes ? "success" : "failed"));
+            }
+        });
 
-		boolean yes = api.insertUser("test_1234", "王五", "13241133615");
-		System.out.println("insert user " + (yes ? "success" : "failed"));
+        boolean yes = api.insertUser("test_1234", "王五", "13241133615");
+        System.out.println("insert user " + (yes ? "success" : "failed"));
 		
-		boolean exist = api.userExist("李明洙");   // sql 错误, 会rollback
-		System.out.println("user named '李明洙' " + (exist ? "exists" : "doesn't exist"));
+        boolean exist = api.userExist("李明洙");   // sql 错误, 会rollback
+        System.out.println("user named '李明洙' " + (exist ? "exists" : "doesn't exist"));
     }
 });
 ```
@@ -141,29 +141,29 @@ sqlla.transact(new VoidTransaction() {
 
 ```
 public void methodA() {
-	sqlla.transact(new VoidTransaction() {
-	   @Override
-		protected void transact0() throws Exception {
-	    
-	    	methodB();
-	    	
-			boolean yes = api.insertUser("test_1234", "王五", "13241133615");
-			System.out.println("insert user " + (yes ? "success" : "failed"));
-			
-			boolean exist = api.userExist("李明洙");   // sql 错误, 会rollback
-			System.out.println("user named '李明洙' " + (exist ? "exists" : "doesn't exist"));
-	    }
-	});
+    sqlla.transact(new VoidTransaction() {
+        @Override
+        protected void transact0() throws Exception {
+
+            methodB();
+
+            boolean yes = api.insertUser("test_1234", "王五", "13241133615");
+            System.out.println("insert user " + (yes ? "success" : "failed"));
+
+            boolean exist = api.userExist("李明洙");   // sql 错误, 会rollback
+            System.out.println("user named '李明洙' " + (exist ? "exists" : "doesn't exist"));
+        }
+    });
 }
 
 public void methodB() {
-	sqlla.transact(new VoidTransaction() {
-	   @Override
-		protected void transact0() throws Exception {
-			boolean yes = api.insertUser("test_1234", "赵六", "13241133616");
-			System.out.println("insert user " + (yes ? "success" : "failed"));
-		}
-	}
+    sqlla.transact(new VoidTransaction() {
+        @Override
+        protected void transact0() throws Exception {
+            boolean yes = api.insertUser("test_1234", "赵六", "13241133616");
+            System.out.println("insert user " + (yes ? "success" : "failed"));
+        }
+    }
 }
 ```
 methodA 和 methodB 是两个事务方法，他们之间完全隔离，提交和回滚互不影响。
