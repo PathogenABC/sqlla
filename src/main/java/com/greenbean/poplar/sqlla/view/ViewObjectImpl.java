@@ -162,8 +162,7 @@ class ViewObjectImpl implements ViewObject {
                 return (boolean) value;
             }
             if (value instanceof Number) {
-                //noinspection RedundantCast
-                return ((Number) value) != 0;
+                return ((Number) value).intValue() != 0;
             }
             if (value instanceof String) {
                 return Boolean.parseBoolean((String) value);
