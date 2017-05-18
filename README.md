@@ -119,7 +119,7 @@ boolean deleted = dao.deleteUserById("uid_10000003");
   * SqllaEntityConverterFactory      转换 @SqllaEntity 表示的实体类和其列表(List)
   * ViewObjectConverterFactory       转换 ViewObject 结果集视图和其列表(List<ViewObject>)
 
-> 外部可以自定义针对自己特定类型的转换工厂 (ResultSet --> CustomBeanType)，自定义的转换工厂 return !null 时会拦截系统预置的转换工厂。
+> 外部可以自定义针对自己特定类型的转换工厂 (ResultSet --> CustomType)，自定义的转换工厂 return !null 时会拦截系统预置的转换工厂。
 
 
 ### 事物支持
@@ -150,7 +150,7 @@ Boolean ret = sqlla.transact(new Transaction<Boolean>(Isolation.SERIALIZABLE) {
 
 注意： transact方法是一个同步方法，它会立马调用transaction, 并返回。
 
-Transaction<T> 是一个抽象类，抽象方法transact用于实现事务的具体逻辑。Transaction0 是其范型为 Void 的子类。
+Transaction<T> 是一个抽象类，抽象方法transact用于实现事务的具体逻辑。最多有三个参数：isolation，readOnly 和 timeout，分别代表隔离级别，是否只读，超时秒数。Transaction0 是其范型为 Void 的子类。
 
 #### 嵌套事务
 
