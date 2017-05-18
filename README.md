@@ -111,7 +111,7 @@ boolean deleted = dao.deleteUserById("uid_10000003");
 
   Sqlla.Builder 提供 pool() 和 addConverterFactory() 方法。
 
-  pool()方法必须设置一个ConnectionPool实例（test 代码提供了一个基于c3p0数据源的 pool）。
+  pool()方法必须设置一个ConnectionPool实例（这里有一个基于 [c3p0 数据源](https://github.com/PathogenABC/sqlla-pool-c3p0)的 pool）。
 
   addConverterFactory() 方法设置 自定义的结果集转换工厂(实现 ResultConverter.Factory 接口)。 内部预置了三种工厂,
 
