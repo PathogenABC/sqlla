@@ -83,7 +83,7 @@ boolean deleted = dao.deleteUserById("uid_10000003");
     * ViewObject 结果集视图实体，代表着结果集的一样。类似于扁平的 JSONObject
 * 转换器： 将结果集转换成实体的部件，可以自定义
 * DAO接口： CRUD操作集合，每个方法代表一条SQL操作
-* 事务： Transaction<T> 代表一个多条DAO方法的事务
+* 事务： Transaction\<T> 代表一个多条DAO方法的事务
 
 
 ### 深入使用
@@ -123,7 +123,7 @@ Boolean ret = sqlla.transact(new Transaction<Boolean>(Isolation.SERIALIZABLE) {
 
 ##### 开启一个事务有两种方法:
 
-`<T> T sqlla.transact(Transaction<T> transaction);`
+`<T> T sqlla.transact(Transaction\<T> transaction);`
 
 `void sqlla.transact(Transaction0 transaction);`
 
