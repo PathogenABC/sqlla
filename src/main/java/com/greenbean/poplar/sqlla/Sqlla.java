@@ -16,6 +16,10 @@ public interface Sqlla {
 
     <T> T createApi(Class<T> apiClass);
 
+    <T> T transact(Transaction<T> transaction, T failedVal);
+
+    void transact(Transaction0 transaction);
+
     class Builder {
 
         private ConnectionPool mPool;

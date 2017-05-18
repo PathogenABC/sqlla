@@ -56,13 +56,33 @@ class ApiMethod {
 
     Object invoke(SqllaImpl sqlla, Object[] args) throws SQLException {
 
-        Connection conn = sqlla.getConnection();
+        TransactionStack stack = TransactionStack.get(sqlla);
+        TransactionInstance currentTransaction = stack.currentTransaction();
+
+        Connection conn;
+        if (currentTransaction != null) {
+            conn = currentTransaction.getConnection();
+        } else {
+            conn = sqlla.getConnection();
+            conn.setAutoCommit(true);
+        }
 
         int[] configs = this.mResultSetConfigs;
         int holdability = configs[2] == -1 ? conn.getHoldability() : configs[2];
         //noinspection MagicConstant
         PreparedStatement ps = conn.prepareStatement(mSql, configs[0], configs[1], holdability);
 
+        if (currentTransaction != null) {
+            int timeout = currentTransaction.getTimeout();
+            if (timeout > 0) {
+                ps.setQueryTimeout(timeout);
+            }
+        }
+
+        return executeSqlAndHandleResult(args, ps);
+    }
+
+    private Object executeSqlAndHandleResult(Object[] args, PreparedStatement ps) throws SQLException {
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
                 Object arg = args[i];
@@ -80,17 +100,21 @@ class ApiMethod {
                 }
             }
         }
-        boolean query = ps.execute();
-        int updateCount = ps.getUpdateCount();
-        if (query) {
-            // result set
-            return handleQuerySqlResult(ps.getResultSet());
-        } else if (updateCount != -1) {
-            // update count
-            return handleUpdatableSqlResult(updateCount);
-        } else {
-            // no result
-            return null;
+        try {
+            boolean query = ps.execute();
+            int updateCount = ps.getUpdateCount();
+            if (query) {
+                // result set
+                return handleQuerySqlResult(ps.getResultSet());
+            } else if (updateCount != -1) {
+                // update count
+                return handleUpdatableSqlResult(updateCount);
+            } else {
+                // no result
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new SqllarException(errorPrefix() + "execute sql and handle result failed", e);
         }
     }
 
@@ -112,7 +136,7 @@ class ApiMethod {
     }
 
     private String errorPrefix() {
-        return "api interface [" + mApiInterface.getName() + "]'s api method[" + mMethod.getName() + "]: ";
+        return "api interface [" + mApiInterface.getName() + "]'s api method[ " + mMethod.getName() + " ]: ";
     }
 
 }

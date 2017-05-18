@@ -42,6 +42,18 @@ class SqllaImpl implements Sqlla, Sqlla.ConnectionPool, ResultConverter.Factory 
         return (T) Proxy.newProxyInstance(loader, interfaces, handler);
     }
 
+    @Override
+    public <T> T transact(Transaction<T> transaction, T failedVal) {
+        TransactionStack stack = TransactionStack.get(this);
+        TransactionInstance ti = stack.allocTransaction();
+        return ti.doTransaction(transaction, failedVal);
+    }
+
+    @Override
+    public void transact(Transaction0 transaction) {
+        transact(transaction, null);
+    }
+
     ApiInterfaceConcept getConcept(Class<?> apiInterface) {
         HashMap<Class<?>, ApiInterfaceConcept> concepts = this.mApiConcepts;
         if (concepts.containsKey(apiInterface)) {

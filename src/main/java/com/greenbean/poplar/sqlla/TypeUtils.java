@@ -74,7 +74,7 @@ public final class TypeUtils {
     }
 
     /**
-     * @return primitive or string value
+     * @return primitive or string level
      */
     public static Object toPrimitiveOrString(String value, Class<?> typeClass) {
         if (typeClass == String.class) {
