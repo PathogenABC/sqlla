@@ -1,9 +1,30 @@
 # Sqlla
+
+[![](https://jitpack.io/v/PathogenABC/sqlla.svg)](https://jitpack.io/#PathogenABC/sqlla)
+
 一套数据库的 ORM 微型库，提供简单高效的 API 来操作数据库。
 > Sqlla 拥有极少的API，使用方式简单。让开发者不需要关心数据库操作的具体细节，只需专注SQL和业务逻辑。同时简单的事务模型让开发过程增益很多。
 
+### 引入
+在 root build.gradle 中添加下面代码
 
-### 使用方法:
+```
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+在 module build.gradle 中添加依赖
+
+```
+dependencies {
+    compile 'com.github.PathogenABC:sqlla:0.0.1'
+}
+```
+
+### 简单使用
 
 * 创建实体类，用 @SqllaEntity 标识
 
@@ -83,7 +104,7 @@ boolean deleted = dao.deleteUserById("uid_10000003");
     * ViewObject 结果集视图实体，代表着结果集的一样。类似于扁平的 JSONObject
 * 转换器： 将结果集转换成实体的部件，可以自定义
 * DAO接口： CRUD操作集合，每个方法代表一条SQL操作
-* 事务： Transaction\<T> 代表一个多条DAO方法的事务
+* 事务： Transaction/<T> 代表一个多条DAO方法的事务
 
 
 ### 深入使用
@@ -123,7 +144,7 @@ Boolean ret = sqlla.transact(new Transaction<Boolean>(Isolation.SERIALIZABLE) {
 
 ##### 开启一个事务有两种方法:
 
-`<T> T sqlla.transact(Transaction\<T> transaction);`
+`<T> T sqlla.transact(Transaction/<T> transaction);`
 
 `void sqlla.transact(Transaction0 transaction);`
 
