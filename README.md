@@ -109,17 +109,17 @@ boolean deleted = dao.deleteUserById("uid_10000003");
 
 ### 深入使用
 
-  Sqlla.Builder 提供 pool() 和 addConverterFactory() 方法。
+  `Sqlla.Builder` 提供 `pool()` 和 `addConverterFactory()` 方法。
 
-  pool()方法必须设置一个ConnectionPool实例（这里有一个基于 [c3p0 数据源](https://github.com/PathogenABC/sqlla-pool-c3p0)的 pool）。
+  `pool()`方法必须设置一个`ConnectionPool`实例（这里有一个基于 [c3p0 数据源](https://github.com/PathogenABC/sqlla-pool-c3p0)的 pool）。
 
-  addConverterFactory() 方法设置 自定义的结果集转换工厂(实现 ResultConverter.Factory 接口)。 内部预置了三种工厂,
+  `addConverterFactory()` 方法设置 自定义的结果集转换工厂(实现 `ResultConverter.Factory` 接口)。 内部预置了三种工厂,
 
-  * PrimitiveTypeConverterFactory	    转换基础数据类型
-  * SqllaEntityConverterFactory      转换 @SqllaEntity 表示的实体类和其列表(List)
-  * ViewObjectConverterFactory       转换 ViewObject 结果集视图和其列表(List<ViewObject>)
+  * `PrimitiveTypeConverterFactory`	    转换基础数据类型
+  * `SqllaEntityConverterFactory`      转换 @SqllaEntity 表示的实体类和其列表(List)
+  * `ViewObjectConverterFactory`       转换 ViewObject 结果集视图和其列表(List<ViewObject>)
 
-> 外部可以自定义针对自己特定类型的转换工厂 (ResultSet --> CustomType)，自定义的转换工厂 return !null 时会拦截系统预置的转换工厂。
+> 外部可以自定义针对自己特定类型的转换工厂 (ResultSet --> CustomType)，自定义的转换工厂 `return !null` 时会拦截系统预置的转换工厂。
 
 
 ### 事物支持
@@ -140,7 +140,7 @@ Boolean ret = sqlla.transact(new Transaction<Boolean>(Isolation.SERIALIZABLE) {
 }, false);	// failed value
 ```
 
-上面的代码执行了一个简单的事务，事务中包含两条删除语句。如果都成功，则自动 commit；只要有一个失败，则会rollback。当回滚之后，事务将返回给定的 failed value。在事务中，也可以手动  rollback() 或者 commit(val)，这两个操作只能调用一次，而且会中断其后面的代码执行，要谨慎使用。
+上面的代码执行了一个简单的事务，事务中包含两条删除语句。如果都成功，则自动 `commit`；只要有一个失败，则会`rollback`。当回滚之后，事务将返回给定的 failed value。在事务中，也可以手动  `rollback()` 或者 `commit(val)`，这两个操作只能调用一次，而且会中断其后面的代码执行，要谨慎使用。
 
 ##### 开启一个事务有两种方法:
 
@@ -150,11 +150,11 @@ Boolean ret = sqlla.transact(new Transaction<Boolean>(Isolation.SERIALIZABLE) {
 
 注意： transact方法是一个同步方法，它会立马调用transaction, 并返回。
 
-Transaction<T> 是一个抽象类，抽象方法transact用于实现事务的具体逻辑。最多有三个参数：isolation，readOnly 和 timeout，分别代表隔离级别，是否只读，超时秒数。Transaction0 是其范型为 Void 的子类。
+`Transaction<T>` 是一个抽象类，抽象方法transact用于实现事务的具体逻辑。最多有三个参数：isolation，readOnly 和 timeout，分别代表隔离级别，是否只读，超时秒数。`Transaction0` 是其范型为 Void 的子类。
 
 #### 嵌套事务
 
-Sqlla 对事务的嵌套提供了简单的支持。相比于Spring事务间的多种传播机制，Sqlla只提供了 REQUIRES_NEW 的传播机制：内层和外层完全隔离开来，互不影响。
+Sqlla 对事务的嵌套提供了简单的支持。相比于Spring事务间的多种传播机制，Sqlla只提供了 `REQUIRES_NEW` 的传播机制：内层和外层完全隔离开来，互不影响。
 
 methodA 和 methodB 是两个事务方法，他们之间完全隔离，提交和回滚互不影响。
 
@@ -183,7 +183,7 @@ public void methodB() {
 
 > 如何验证两个事务之间互不影响？
 
-我们先把 mehtodA 中的 deleteUserByName 方法的sql改成一个错的sql
+我们先把 mehtodA 中的 `deleteUserByName` 方法的sql改成一个错的sql
 
 ```
 @Sql("delete from t_user where name = ????????")
@@ -192,7 +192,7 @@ boolean deleteUserByName(String name);
 
 现在再调用 methodA，你会发现 “王五” 这个用户并未插入到数据库中, “张三” 也没有被删除，而 “赵六” 却实实在在的插入到了数据库中。
 
-注意：假如 methodB 本身并不是一个单独的事务方法 (未用 sqlla.transact 开启)，那么他将使用外层的事务。所以要不要使用事务，一定要考虑好，不然可能会有一些意想不到的效果。
+注意：假如 methodB 本身并不是一个单独的事务方法 (未用 `sqlla.transact` 开启)，那么他将使用外层的事务。所以要不要使用事务，一定要考虑好，不然可能会有一些意想不到的效果。
 
 > Sqlla虽然提供了注解的方式来操作SQL，但是事务并没有使用注解的方式， 这和MyBatis一致。实际内部实现也和 MyBatis 相差无几。
 
