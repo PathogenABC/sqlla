@@ -100,8 +100,8 @@ boolean deleted = dao.deleteUserById("uid_10000003");
 ### 概念
 
 * 实体： 库中预置了两种实体模型
-    * @SqllaEntity 标识的Pojo实体
-    * ViewObject 结果集视图实体，代表着结果集的一样。类似于扁平的 JSONObject
+    * `@SqllaEntity` 标识的Pojo实体
+    * `ViewObject` 结果集视图实体，代表着结果集的一行，类似于扁平的 `JSONObject`
 * 转换器： 将结果集转换成实体的部件，可以自定义
 * DAO接口： CRUD操作集合，每个方法代表一条SQL操作
 * 事务： Transaction/<T> 代表一个多条DAO方法的事务
