@@ -67,10 +67,16 @@ public abstract class Transaction<T> {
         throw new CommitAbort(retValue);
     }
 
-    protected final void rollback() throws SQLException {
+    protected final void rollback(T retValue) throws SQLException {
 //        if (mCompleted) {
 //            throw new SqllarException("transaction failed: transaction has been already completed");
 //        }
+        mCompleted = true;
+        mInstance.rollback();
+        throw new RollbackAbort(retValue);
+    }
+
+    protected final void rollback() throws SQLException {
         mCompleted = true;
         mInstance.rollback();
         throw new RollbackAbort();
@@ -98,13 +104,25 @@ public abstract class Transaction<T> {
 
     static class CommitAbort extends RuntimeException {
 
-        final Object mRetValue;
+        final Object mCommitValue;
 
         CommitAbort(Object retValue) {
-            mRetValue = retValue;
+            mCommitValue = retValue;
         }
     }
 
     static class RollbackAbort extends RuntimeException {
+        final Object mRollbackValue;
+        final boolean mHasRollbackVal;
+
+        RollbackAbort(Object retValue) {
+            mRollbackValue = retValue;
+            mHasRollbackVal = true;
+        }
+
+        RollbackAbort() {
+            mRollbackValue = null;
+            mHasRollbackVal = false;
+        }
     }
 }

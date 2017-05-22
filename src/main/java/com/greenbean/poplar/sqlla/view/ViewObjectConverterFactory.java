@@ -7,10 +7,7 @@ import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by chrisding on 2017/5/16.
@@ -18,11 +15,20 @@ import java.util.Map;
  */
 public class ViewObjectConverterFactory implements ResultConverter.Factory {
 
+    private Map<Type, ResultConverter<?>> mCached = new LinkedHashMap<>(0);
+
     @Override
     public ResultConverter<?> getConverter(Type returnType) {
 
+        Map<Type, ResultConverter<?>> cachedConverters = this.mCached;
+        if (cachedConverters.containsKey(returnType)) {
+            return cachedConverters.get(returnType);
+        }
+
         if (returnType == ViewObject.class) {
-            return new SingleViewObjectConverter();
+            SingleViewObjectConverter converter = new SingleViewObjectConverter();
+            cachedConverters.put(returnType, converter);
+            return converter;
         }
 
         if (returnType instanceof ParameterizedType) {
@@ -30,10 +36,13 @@ public class ViewObjectConverterFactory implements ResultConverter.Factory {
             final Class<?> rawType = (Class<?>) prType.getRawType();
             Type[] componentTypes = prType.getActualTypeArguments();
             if (componentTypes.length == 1 && rawType == List.class && componentTypes[0] == ViewObject.class) {
-                return new ListViewObjectConverter();
+                ListViewObjectConverter converter = new ListViewObjectConverter();
+                cachedConverters.put(returnType, converter);
+                return converter;
             }
         }
 
+        cachedConverters.put(returnType, null);
         return null;
     }
 
@@ -70,4 +79,5 @@ public class ViewObjectConverterFactory implements ResultConverter.Factory {
             return list;
         }
     }
+
 }

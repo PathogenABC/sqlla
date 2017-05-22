@@ -6,10 +6,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by chrisding on 2017/5/13.
@@ -18,16 +15,24 @@ import java.util.Map;
 public class SqllaEntityConverterFactory implements ResultConverter.Factory {
 
     private Map<Class<?>, SqllaEntityConcept<?>> mEntityConcepts = new HashMap<>(0);
-
     private final Object mEntityConceptsWRLock = new Object();
+
+    private Map<Type, ResultConverter<?>> mCached = new LinkedHashMap<>(0);
 
     @Override
     public ResultConverter<?> getConverter(Type returnType) {
 
+        Map<Type, ResultConverter<?>> cachedConverters = this.mCached;
+        if (cachedConverters.containsKey(returnType)) {
+            return cachedConverters.get(returnType);
+        }
+
         if (returnType instanceof Class<?>) {
             Class<?> rawType = (Class<?>) returnType;
             if (rawType.isAnnotationPresent(SqllaEntity.class)) {
-                return new SingleSqllaEntityConverter<>(rawType);
+                SingleSqllaEntityConverter<?> converter = new SingleSqllaEntityConverter<>(rawType);
+                cachedConverters.put(returnType, converter);
+                return converter;
             }
         } else if (returnType instanceof ParameterizedType) {
             ParameterizedType prType = (ParameterizedType) returnType;
@@ -37,10 +42,14 @@ public class SqllaEntityConverterFactory implements ResultConverter.Factory {
                     && rawType == List.class
                     && typeArgs[0] instanceof Class<?>
                     && ((Class<?>) typeArgs[0]).isAnnotationPresent(SqllaEntity.class)) {
-                return new ListSqllaEntityConverter<>((Class<?>) typeArgs[0]);
+
+                ListSqllaEntityConverter<?> converter = new ListSqllaEntityConverter<>((Class<?>) typeArgs[0]);
+                cachedConverters.put(returnType, converter);
+                return converter;
             }
         }
 
+        cachedConverters.put(returnType, null);
         return null;
     }
 

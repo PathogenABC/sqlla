@@ -27,7 +27,7 @@ public interface UserDao {
     @Sql("select * from t_user where phone = ?")
     List<UserBean> getUserByPhone(String phone);
 
-    @Sql("select (count(*) > 0) from t_user where name = ?1")
+    @Sql("select (count(*) > 0) as count from t_user where name = ?1")
     boolean userExist(String name);
 
     @Sql("insert into t_user (id, uid, name, phone) values (null, ?, ?, ?)")

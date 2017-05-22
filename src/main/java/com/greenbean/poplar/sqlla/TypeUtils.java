@@ -109,4 +109,11 @@ public final class TypeUtils {
         }
         return null;
     }
+
+    public static boolean isPrimitive(Class<?> type) {
+        return type.isPrimitive()
+                || type == Void.class || type == Byte.class || type == Short.class
+                || type == Integer.class || type == Long.class || type == Float.class
+                || type == Double.class || type == Boolean.class;
+    }
 }

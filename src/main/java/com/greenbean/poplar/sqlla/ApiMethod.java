@@ -67,6 +67,8 @@ class ApiMethod {
             conn.setAutoCommit(true);
         }
 
+        System.out.println("Sqlla: " + logPrefix() + mSql.toUpperCase());
+
         int[] configs = this.mResultSetConfigs;
         int holdability = configs[2] == -1 ? conn.getHoldability() : configs[2];
         //noinspection MagicConstant
@@ -96,7 +98,7 @@ class ApiMethod {
                 } else if (argClass == java.sql.Date.class) {
                     ps.setDate(i + 1, (java.sql.Date) arg);
                 } else {
-                    throw new SqllarException(errorPrefix() + "unsupported argument type: " + argClass.getName() + " at " + i);
+                    throw new SqllarException(logPrefix() + "unsupported argument type: " + argClass.getName() + " at " + i);
                 }
             }
         }
@@ -114,7 +116,7 @@ class ApiMethod {
                 return null;
             }
         } catch (SQLException e) {
-            throw new SqllarException(errorPrefix() + "execute sql and handle result failed", e);
+            throw new SqllarException(logPrefix() + "execute sql and handle result failed", e);
         }
     }
 
@@ -131,11 +133,11 @@ class ApiMethod {
         } else if (rawType == void.class || rawType == Void.class) {
             return null;
         } else {
-            throw new SqllarException(errorPrefix() + "return type is [" + rawType.getName() + "], boolean, int or void expected for an UPDATABLE sql.");
+            throw new SqllarException(logPrefix() + "return type is [" + rawType.getName() + "], boolean, int or void expected for an UPDATABLE sql.");
         }
     }
 
-    private String errorPrefix() {
+    private String logPrefix() {
         return "api interface [" + mApiInterface.getName() + "]'s api method[ " + mMethod.getName() + " ]: ";
     }
 

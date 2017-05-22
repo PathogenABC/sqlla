@@ -85,8 +85,12 @@ class TransactionInstance {
             return val;
         } catch (Transaction.CommitAbort ca) {
             //noinspection unchecked
-            return (T) ca.mRetValue;
+            return (T) ca.mCommitValue;
         } catch (Transaction.RollbackAbort ra) {
+            if (ra.mHasRollbackVal) {
+                //noinspection unchecked
+                return (T) ra.mRollbackValue;
+            }
             return failedVal;
         } catch (Exception e) {
             e.printStackTrace();

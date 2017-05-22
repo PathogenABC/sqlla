@@ -1,6 +1,8 @@
 package com.greenbean.poplar.sqlla;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Stack;
+import java.util.WeakHashMap;
 
 /**
  * Created by chrisding on 2017/5/17.
@@ -8,10 +10,10 @@ import java.util.*;
  */
 class TransactionStack {
 
-    private static ThreadLocal<Map<SqllaImpl, TransactionStack>> stInstance = new ThreadLocal<>();
+    private static ThreadLocal<Map<SqllaImpl, TransactionStack>> slInstance = new ThreadLocal<>();
 
     static {
-        stInstance.set(new WeakHashMap<SqllaImpl, TransactionStack>(0));
+        slInstance.set(new WeakHashMap<SqllaImpl, TransactionStack>(0));
     }
 
     final SqllaImpl mSqlla;
@@ -23,7 +25,7 @@ class TransactionStack {
     }
 
     static TransactionStack get(SqllaImpl sqlla) {
-        Map<SqllaImpl, TransactionStack> stackMap = stInstance.get();
+        Map<SqllaImpl, TransactionStack> stackMap = makeSureLocalStackMap();
 
         if (stackMap.containsKey(sqlla)) {
             return stackMap.get(sqlla);
@@ -36,6 +38,24 @@ class TransactionStack {
             TransactionStack stack = new TransactionStack(sqlla);
             stackMap.put(sqlla, stack);
             return stack;
+        }
+    }
+
+    private static Map<SqllaImpl, TransactionStack> makeSureLocalStackMap() {
+        Map<SqllaImpl, TransactionStack> stackMap = slInstance.get();
+        if (stackMap != null) {
+            return stackMap;
+        }
+
+        synchronized (TransactionStack.class) {
+            stackMap = slInstance.get();
+            if (stackMap != null) {
+                return stackMap;
+            }
+
+            stackMap = new WeakHashMap<>(0);
+            slInstance.set(stackMap);
+            return stackMap;
         }
     }
 
