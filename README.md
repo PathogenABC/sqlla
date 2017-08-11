@@ -20,7 +20,7 @@ allprojects {
 
 ```
 dependencies {
-    compile 'com.github.PathogenABC:sqlla:1.0.1'
+    compile 'com.github.PathogenABC:sqlla:1.0.2'
 }
 ```
 
