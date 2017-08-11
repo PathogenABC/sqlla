@@ -114,6 +114,52 @@ public final class TypeUtils {
         return type.isPrimitive()
                 || type == Void.class || type == Byte.class || type == Short.class
                 || type == Integer.class || type == Long.class || type == Float.class
-                || type == Double.class || type == Boolean.class;
+                || type == Double.class || type == Boolean.class || type == Character.class;
+    }
+
+    public static Object createDefault(Class<?> typeClass) {
+
+        if (Number.class.isAssignableFrom(typeClass)
+                || typeClass == byte.class || typeClass == short.class
+                || typeClass == int.class || typeClass == long.class
+                || typeClass == float.class || typeClass == double.class) {
+
+        }
+        if (typeClass == Byte.class || typeClass == byte.class) {
+            return (byte) 0;
+        }
+
+        if (typeClass == Short.class || typeClass == short.class) {
+            return (short) 0;
+        }
+
+        if (typeClass == Integer.class || typeClass == int.class) {
+            return 0;
+        }
+
+        if (typeClass == Long.class || typeClass == long.class) {
+            return 0L;
+        }
+
+        if (typeClass == Float.class || typeClass == float.class) {
+            return 0F;
+        }
+
+        if (typeClass == Double.class || typeClass == double.class) {
+            return 0D;
+        }
+
+        if (typeClass == Character.class || typeClass == char.class) {
+            return Character.MIN_VALUE;
+        }
+        if (typeClass == Boolean.class || typeClass == boolean.class) {
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
+    public static void main(String[] args) {
+        Object aDefault = createDefault(Boolean.class);
+        System.out.printf("default = " + aDefault);
     }
 }

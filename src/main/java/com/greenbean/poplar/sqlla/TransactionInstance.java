@@ -73,29 +73,28 @@ class TransactionInstance {
         mTransaction = transaction;
     }
 
-    <T> T doTransaction(Transaction<T> transaction, T failedVal) {
+    <T> Result<T> doTransaction(Transaction<T> transaction, T failedVal) {
         transaction.setInstance(this);
         try {
             setTransaction(transaction);
 
             // call real transaction
-            T val = transaction.transact();
+            transaction.transact();
 
             transaction.commitIfUncompleted();
-            return val;
+            return new Result<>(null, true);
         } catch (Transaction.CommitAbort ca) {
             //noinspection unchecked
-            return (T) ca.mCommitValue;
+            return new Result<>((T) ca.mCommitValue, true);
         } catch (Transaction.RollbackAbort ra) {
             if (ra.mHasRollbackVal) {
                 //noinspection unchecked
-                return (T) ra.mRollbackValue;
+                return new Result<>((T) ra.mRollbackValue, false, ra.mException);
             }
-            return failedVal;
+            return new Result<>(failedVal, false, ra.mException);
         } catch (Exception e) {
-            e.printStackTrace();
             transaction.rollbackIfUncompleted();
-            return failedVal;
+            return new Result<>(failedVal, false, e);
         } finally {
             transaction.setInstance(null);
             mStack.freeTransaction(this);

@@ -43,15 +43,20 @@ class SqllaImpl implements Sqlla, Sqlla.ConnectionPool, ResultConverter.Factory 
     }
 
     @Override
-    public <T> T transact(Transaction<T> transaction, T failedVal) {
+    public <T> Result<T> transact(Transaction<T> transaction, T failedVal) {
         TransactionStack stack = TransactionStack.get(this);
         TransactionInstance ti = stack.allocTransaction();
         return ti.doTransaction(transaction, failedVal);
     }
 
     @Override
-    public void transact(Transaction0 transaction) {
-        transact(transaction, null);
+    public <T> Result<T> transact(Transaction<T> transaction) {
+        return transact(transaction, null);
+    }
+
+    @Override
+    public void destroy() throws SQLException {
+        mPool.destroy();
     }
 
     ApiInterfaceConcept getConcept(Class<?> apiInterface) {

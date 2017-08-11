@@ -2,10 +2,10 @@ package com.greenbean.poplar.sqlla.test;
 
 import com.greenbean.poplar.sqlla.Sqlla;
 import com.greenbean.poplar.sqlla.Transaction;
-import com.greenbean.poplar.sqlla.Transaction0;
 import com.greenbean.poplar.sqlla.view.ViewObject;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,11 +47,11 @@ public class Main {
         System.out.println(viewObjects);
 
         boolean yes = api.insertUser("test_1234", "张三", "13241133616");
-        System.out.println("insert user " + (yes ? "success" : "failed"));
+        System.out.println("insert user " + (yes ? "committed" : "failed"));
 
     }
 
-    public static void main(String[] args) {
+    public static void main1(String[] args) {
         Sqlla.ConnectionPool pool = new C3P0ConnectionPool("sqlla/conf/c3p0_config.properties");
         final Sqlla sqlla = new Sqlla.Builder().pool(pool).build();
         sSqlla = sqlla;
@@ -62,24 +62,23 @@ public class Main {
         UserBean maxIdUser = api.maxIdUser();
         System.out.println(maxIdUser);
 
-        sqlla.transact(new Transaction0() {
+        sqlla.transact(new Transaction<Void>() {
 
             @Override
-            protected void transact0() throws Exception {
+            protected void transact() throws Exception {
 
                 boolean yes = api.insertUser("test_1234", "王五", "13241133615");
-                System.out.println("insert user " + (yes ? "success" : "failed"));
+                System.out.println("insert user " + (yes ? "committed" : "failed"));
 
                 boolean exist = api.userExist("李明洙");   // sql 错误, 会rollback
                 System.out.println("user named '李明洙' " + (exist ? "exists" : "doesn't exist"));
 
-                sqlla.transact(new Transaction0() {
-
+                sqlla.transact(new Transaction<Void>() {
                     @Override
-                    protected void transact0() throws Exception {
+                    protected void transact() throws Exception {
                         boolean yes = api.insertUser("test_1234", "赵六", "13241133616");
                         commit(null);
-                        System.out.println("insert user " + (yes ? "success" : "failed"));
+                        System.out.println("insert user " + (yes ? "committed" : "failed"));
                     }
                 });
             }
@@ -90,29 +89,41 @@ public class Main {
     }
 
     static boolean transferMoney(final String myUid, final String acceptorUid, final float money) {
-        return sSqlla.transact(new Transaction<Boolean>() {
-            public Boolean transact() throws Exception {
-                MoneyDao api = sSqlla.createApi(MoneyDao.class);
-                boolean b = api.addMoneyForUser(-money, myUid);
-                b &= api.addMoneyForUser(money, acceptorUid);
-                if (!b) rollback();
-                return b;
-            }
-        }, false);
+//        return sSqlla.transact(new Transaction<Boolean>() {
+//            public Boolean transact() throws Exception {
+//                MoneyDao api = sSqlla.createApi(MoneyDao.class);
+//                boolean b = api.addMoneyForUser(-money, myUid);
+//                b &= api.addMoneyForUser(money, acceptorUid);
+//                if (!b) rollback();
+//                return b;
+//            }
+//        }, false);
+        return false;
     }
 
     static boolean transferMoneyAndUpdateJifen() {
-        return sSqlla.transact(new Transaction<Boolean>() {
-            @Override
-            protected Boolean transact() throws Exception {
-                MoneyDao api = sSqlla.createApi(MoneyDao.class);
-                boolean b = transferMoney("111", "222", 100);
-                b &= api.addJifenForUser("111", 2);
-                b &= api.addJifenForUser("222", 2);
-                if (!b) rollback();
-                return b;
-            }
-        }, false);
+//        return sSqlla.transact(new Transaction<Boolean>() {
+//            @Override
+//            protected Boolean transact() throws Exception {
+//                MoneyDao api = sSqlla.createApi(MoneyDao.class);
+//                boolean b = transferMoney("111", "222", 100);
+//                b &= api.addJifenForUser("111", 2);
+//                b &= api.addJifenForUser("222", 2);
+//                if (!b) rollback();
+//                return b;
+//            }
+//        }, false);
+        return false;
+    }
+
+    public static void main(String[] args) {
+        Sqlla.ConnectionPool pool = new C3P0ConnectionPool("sqlla/conf/c3p0_corner_config.properties");
+        Sqlla sqlla = new Sqlla.Builder().pool(pool).build();
+
+
+        ModelApi api = sqlla.createApi(ModelApi.class);
+        List<LikeUserModel> list = api.getLikeRecordListByTargetUser(6, new Date(Long.MAX_VALUE), 40);
+        System.out.printf("list = " + list);
     }
 
 }

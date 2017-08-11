@@ -2,8 +2,11 @@ package com.greenbean.poplar.sqlla.entity;
 
 import com.greenbean.poplar.sqlla.ResultConverter;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -53,7 +56,7 @@ public class SqllaEntityConverterFactory implements ResultConverter.Factory {
         return null;
     }
 
-    private <T> SqllaEntityConcept<T> getConcept(Class<T> returnRawType) {
+    <T> SqllaEntityConcept<T> getConcept(Class<T> returnRawType) {
         if (mEntityConcepts.containsKey(returnRawType)) {
             //noinspection unchecked
             return (SqllaEntityConcept<T>) mEntityConcepts.get(returnRawType);
@@ -64,26 +67,91 @@ public class SqllaEntityConverterFactory implements ResultConverter.Factory {
                 //noinspection unchecked
                 return (SqllaEntityConcept<T>) mEntityConcepts.get(returnRawType);
             }
-
             SqllaEntityConcept<T> concept = new SqllaEntityConcept<>(returnRawType);
             mEntityConcepts.put(returnRawType, concept);
+            mEntityConceptsWRLock.notify();
+            concept.resolveColumnConcepts(this);
             return concept;
         }
     }
 
-    private <T> T newEntityFromCursor(SqllaEntityConcept<T> concept, ResultSet resultSet) {
+    private <T> T newEntityFromCursor(SqllaEntityConcept<T> concept, ResultConverter.Param param) throws SQLException {
         T obj = concept.newEntity();
+        ResultSet resultSet = param.getResultSet();
+        Connection conn = resultSet.getStatement().getConnection();
         for (SqllaEntityConcept.ColumnField field : concept) {
-            try {
-                Class<?> type = field.mField.getType();
-                if (type == java.util.Date.class) {
-                    type = java.sql.Date.class;
-                }
-                field.set(obj, resultSet.getObject(field.mColumn, type));
-            } catch (SQLException ignored) {
+            Class<?> type = field.mField.getType();
+            if (type == java.util.Date.class) {
+                type = java.sql.Date.class;
             }
+            Object value;
+            if (field.mIsEntityType) {
+                do {
+                    try {
+                        resultSet.findColumn(field.mColumn);
+                    } catch (SQLException e) {
+                        value = null;   // 没有这一列，置空
+                        break;
+                    }
+
+                    value = resultSet.getObject(field.mColumn, field.mEntityConcept.mPrimaryKey.mField.getType());
+                    Exclude exclude = param.getAnnotation(Exclude.class);
+                    if ((exclude == null || Arrays.binarySearch(exclude.value(), "") == -1) && field.mIsInclude) {
+                        // 是Include的同时不是Exclude, 查询出此对象
+                        value = queryObject(conn, field, value);
+                    } else {
+                        // 填充一个之后ID数据的对象, 这个对象对应的表数据可能是不存在
+                        Object emptyValJustId = field.mEntityConcept.newEntity();
+                        field.mEntityConcept.mPrimaryKey.set(emptyValJustId, value);
+                        value = emptyValJustId;
+                    }
+                } while (false);
+            } else {
+                value = resultSet.getObject(field.mColumn, type);
+            }
+            field.set(obj, value);
         }
         return obj;
+    }
+
+    private Object queryObject(Connection conn, final SqllaEntityConcept.ColumnField field, Object value) throws SQLException {
+        if (!field.mIsEntityType) {
+            return value;
+        }
+        final String fieldQuerySql = field.mEntityConcept.mQuerySql;
+        if (fieldQuerySql == null || fieldQuerySql.isEmpty()) {
+            return value;
+        }
+
+        PreparedStatement ps = conn.prepareStatement(fieldQuerySql);
+        ps.setObject(1, value);
+
+        System.out.println("Sqlla: EntityConverter: fetch [" + field.mField.getType() + "] by execute sql "
+                + fieldQuerySql.toUpperCase() + ", arg = " + String.valueOf(value));
+
+        final ResultSet queryRet = ps.executeQuery();
+        value = getConverter(field.mField.getGenericType()).convert(new ResultConverter.Param() {
+            @Override
+            public String getSql() {
+                return fieldQuerySql;
+            }
+
+            @Override
+            public Type getTargetType() {
+                return field.mField.getGenericType();
+            }
+
+            @Override
+            public ResultSet getResultSet() {
+                return queryRet;
+            }
+
+            @Override
+            public <T extends Annotation> T getAnnotation(Class<T> annoClass) {
+                return null;
+            }
+        });
+        return value;
     }
 
     private class SingleSqllaEntityConverter<T> implements ResultConverter<T> {
@@ -95,9 +163,10 @@ public class SqllaEntityConverterFactory implements ResultConverter.Factory {
         }
 
         @Override
-        public T convert(ResultSet resultSet) throws SQLException {
+        public T convert(ResultConverter.Param param) throws SQLException {
+            ResultSet resultSet = param.getResultSet();
             if (resultSet.next()) {
-                return newEntityFromCursor(mConcept, resultSet);
+                return newEntityFromCursor(mConcept, param);
             }
             return null;
         }
@@ -112,11 +181,11 @@ public class SqllaEntityConverterFactory implements ResultConverter.Factory {
         }
 
         @Override
-        public List<T> convert(ResultSet resultSet) throws SQLException {
+        public List<T> convert(ResultConverter.Param param) throws SQLException {
             SqllaEntityConcept<T> concept = this.mConcept;
             List<T> list = new ArrayList<>();
-            while (resultSet.next()) {
-                list.add(newEntityFromCursor(concept, resultSet));
+            while (param.getResultSet().next()) {
+                list.add(newEntityFromCursor(concept, param));
             }
             return list;
         }

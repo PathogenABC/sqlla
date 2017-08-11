@@ -1,11 +1,13 @@
 package com.greenbean.poplar.sqlla;
 
+import com.greenbean.poplar.sqlla.entity.SqllaEntity;
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by chrisding on 2017/5/12.
@@ -67,7 +69,7 @@ class ApiMethod {
             conn.setAutoCommit(true);
         }
 
-        System.out.println("Sqlla: " + logPrefix() + mSql.toUpperCase());
+        System.out.println("SQLLA: " + logPrefix() + mSql + ", ARGS = " + Arrays.toString(args));
 
         int[] configs = this.mResultSetConfigs;
         int holdability = configs[2] == -1 ? conn.getHoldability() : configs[2];
@@ -88,17 +90,21 @@ class ApiMethod {
         if (args != null) {
             for (int i = 0; i < args.length; i++) {
                 Object arg = args[i];
-                Class<?> argClass = arg.getClass();
-                if (argClass.isPrimitive()) {
-                    ps.setObject(i + 1, arg);
-                } else if (argClass == String.class) {
-                    ps.setString(i + 1, (String) arg);
-                } else if (argClass == java.util.Date.class) {
-                    ps.setDate(i + 1, new java.sql.Date(((java.util.Date) arg).getTime()));
-                } else if (argClass == java.sql.Date.class) {
-                    ps.setDate(i + 1, (java.sql.Date) arg);
+                if (arg == null) {
+                    ps.setNull(i + 1, Types.NULL);
                 } else {
-                    throw new SqllarException(logPrefix() + "unsupported argument type: " + argClass.getName() + " at " + i);
+                    Class<?> argClass = arg.getClass();
+                    if (argClass == String.class) {
+                        ps.setString(i + 1, (String) arg);
+                    } else if (argClass == java.util.Date.class) {
+                        ps.setDate(i + 1, new java.sql.Date(((java.util.Date) arg).getTime()));
+                    } else if (argClass == java.sql.Date.class) {
+                        ps.setDate(i + 1, (java.sql.Date) arg);
+                    } else if (TypeUtils.isPrimitive(argClass)) {
+                        ps.setObject(i + 1, arg);
+                    } else {
+                        throw new SqllarException(logPrefix() + "unsupported argument type: " + argClass.getName() + " at " + i);
+                    }
                 }
             }
         }
@@ -120,8 +126,37 @@ class ApiMethod {
         }
     }
 
-    private Object handleQuerySqlResult(ResultSet resultSet) throws SQLException {
-        return mAdapter.convert(resultSet);
+    private Object handleQuerySqlResult(final ResultSet resultSet) throws SQLException {
+        return mAdapter.convert(new ResultConverter.Param() {
+            @Override
+            public String getSql() {
+                return mSql;
+            }
+
+            @Override
+            public Type getTargetType() {
+                return mReturnType;
+            }
+
+            @Override
+            public ResultSet getResultSet() {
+                return resultSet;
+            }
+
+            @Override
+            public <T extends Annotation> T getAnnotation(Class<T> annoClass) {
+                return mMethod.getAnnotation(annoClass);
+            }
+        });
+    }
+
+    private boolean isSqllaEntity() {
+        return TypeUtils.getRawType(mReturnType).isAnnotationPresent(SqllaEntity.class);
+    }
+
+    private boolean isSqllaEntityList() {
+        return TypeUtils.getRawType(mReturnType) == List.class
+                && TypeUtils.getGenericComponentRawType(mReturnType).isAnnotationPresent(SqllaEntity.class);
     }
 
     private Object handleUpdatableSqlResult(int updateCount) {
@@ -138,7 +173,7 @@ class ApiMethod {
     }
 
     private String logPrefix() {
-        return "api interface [" + mApiInterface.getName() + "]'s api method[ " + mMethod.getName() + " ]: ";
+        return "API INTERFACE [" + mApiInterface.getName() + "]'s METHOD[ " + mMethod.getName() + " ]: ";
     }
 
 }

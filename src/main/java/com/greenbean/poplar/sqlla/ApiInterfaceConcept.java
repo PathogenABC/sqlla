@@ -1,5 +1,7 @@
 package com.greenbean.poplar.sqlla;
 
+import com.greenbean.poplar.sqlla.entity.Include;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -42,6 +44,8 @@ class ApiInterfaceConcept {
                     resultSetConfigs[2] = ((ResultSetHoldability) anno).value();
                 } else if (type == Sql.class) {
                     sql = ((Sql) anno).value();
+                } else if (type == Include.class) {
+
                 }
             }
             if (sql == null || sql.length() == 0) {

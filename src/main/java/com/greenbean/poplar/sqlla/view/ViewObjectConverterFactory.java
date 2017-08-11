@@ -60,7 +60,8 @@ public class ViewObjectConverterFactory implements ResultConverter.Factory {
     private static class SingleViewObjectConverter implements ResultConverter<ViewObject> {
 
         @Override
-        public ViewObject convert(ResultSet resultSet) throws SQLException {
+        public ViewObject convert(Param param) throws SQLException {
+            ResultSet resultSet = param.getResultSet();
             if (resultSet.next()) {
                 return newObjectFromCursor(resultSet);
             }
@@ -71,7 +72,8 @@ public class ViewObjectConverterFactory implements ResultConverter.Factory {
     private static class ListViewObjectConverter implements ResultConverter<List<ViewObject>> {
 
         @Override
-        public List<ViewObject> convert(ResultSet resultSet) throws SQLException {
+        public List<ViewObject> convert(Param param) throws SQLException {
+            ResultSet resultSet = param.getResultSet();
             List<ViewObject> list = new ArrayList<>(0);
             while (resultSet.next()) {
                 list.add(newObjectFromCursor(resultSet));

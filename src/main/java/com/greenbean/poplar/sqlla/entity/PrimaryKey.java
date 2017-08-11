@@ -6,11 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by chrisding on 2017/5/12.
- * Function: 标识某个类为实体对象
+ * Created by chrisding on 2017/6/11.
+ * Function: NULL
  */
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SqllaEntity {
-    String value() default "";
+public @interface PrimaryKey {
 }

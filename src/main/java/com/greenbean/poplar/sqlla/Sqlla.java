@@ -16,9 +16,11 @@ public interface Sqlla {
 
     <T> T createApi(Class<T> apiClass);
 
-    <T> T transact(Transaction<T> transaction, T failedVal);
+    <T> Result<T> transact(Transaction<T> transaction, T failedVal);
 
-    void transact(Transaction0 transaction);
+    <T> Result<T> transact(Transaction<T> transaction);
+
+    void destroy() throws Exception;
 
     class Builder {
 
@@ -48,7 +50,10 @@ public interface Sqlla {
     }
 
     interface ConnectionPool {
+
         Connection getConnection() throws SQLException;
+
+        void destroy() throws SQLException;
     }
 
 }

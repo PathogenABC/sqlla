@@ -48,7 +48,7 @@ public abstract class Transaction<T> {
         this(-1);
     }
 
-    protected abstract T transact() throws Exception;
+    protected abstract void transact() throws Exception;
 
     protected boolean isCompleted() {
         return mCompleted;
@@ -112,17 +112,29 @@ public abstract class Transaction<T> {
     }
 
     static class RollbackAbort extends RuntimeException {
+
         final Object mRollbackValue;
         final boolean mHasRollbackVal;
+        final Exception mException;
 
-        RollbackAbort(Object retValue) {
+        RollbackAbort(Object retValue, Exception exception) {
             mRollbackValue = retValue;
             mHasRollbackVal = true;
+            mException = exception;
+        }
+
+        RollbackAbort(Object retValue) {
+            this(retValue, null);
+        }
+
+        RollbackAbort(Exception exception) {
+            mRollbackValue = null;
+            mHasRollbackVal = false;
+            mException = exception;
         }
 
         RollbackAbort() {
-            mRollbackValue = null;
-            mHasRollbackVal = false;
+            this(null);
         }
     }
 }

@@ -140,7 +140,7 @@ Boolean ret = sqlla.transact(new Transaction<Boolean>(Isolation.SERIALIZABLE) {
 }, false);	// failed value
 ```
 
-上面的代码执行了一个简单的事务，事务中包含两条删除语句。如果都成功，则自动 `commit`；只要有一个失败，则会`rollback`。当回滚之后，事务将返回给定的 failed value。在事务中，也可以手动  `rollback()` 或者 `commit(val)`，这两个操作只能调用一次，而且会中断其后面的代码执行，要谨慎使用。
+上面的代码执行了一个简单的事务，事务中包含两条删除语句。如果都成功，则自动 `commit`；只要有一个失败，则会`committed`。当回滚之后，事务将返回给定的 failed value。在事务中，也可以手动  `committed()` 或者 `commit(val)`，这两个操作只能调用一次，而且会中断其后面的代码执行，要谨慎使用。
 
 ##### 开启一个事务有两种方法:
 

@@ -29,7 +29,7 @@ class PrimitiveTypeConverterFactory implements ResultConverter.Factory {
         if (rawType == Void.class || rawType == void.class) {
             ResultConverter<Void> converter = new ResultConverter<Void>() {
                 @Override
-                public Void convert(ResultSet resultSet) throws SQLException {
+                public Void convert(Param param) throws SQLException {
                     return null;
                 }
             };
@@ -40,11 +40,12 @@ class PrimitiveTypeConverterFactory implements ResultConverter.Factory {
         if (rawType == String.class || TypeUtils.isPrimitive(rawType)) {
             ResultConverter<Object> converter = new ResultConverter<Object>() {
                 @Override
-                public Object convert(ResultSet resultSet) throws SQLException {
+                public Object convert(ResultConverter.Param param) throws SQLException {
+                    ResultSet resultSet = param.getResultSet();
                     if (resultSet.next()) {
                         return resultSet.getObject(1, rawType);
                     }
-                    return null;
+                    return TypeUtils.createDefault(rawType);
                 }
             };
             cachedConverters.put(returnType, converter);
@@ -57,8 +58,9 @@ class PrimitiveTypeConverterFactory implements ResultConverter.Factory {
             if (componentRawType == String.class || TypeUtils.isPrimitive(componentRawType)) {
                 ResultConverter<List<Object>> converter = new ResultConverter<List<Object>>() {
                     @Override
-                    public List<Object> convert(ResultSet resultSet) throws SQLException {
+                    public List<Object> convert(ResultConverter.Param param) throws SQLException {
                         ArrayList<Object> list = new ArrayList<>();
+                        ResultSet resultSet = param.getResultSet();
                         if (resultSet.next()) {
                             list.add(resultSet.getObject(1, componentRawType));
                         }
