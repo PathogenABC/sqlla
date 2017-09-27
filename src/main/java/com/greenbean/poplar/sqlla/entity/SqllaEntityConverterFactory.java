@@ -107,9 +107,15 @@ public class SqllaEntityConverterFactory implements ResultConverter.Factory {
                     }
                 } while (false);
             } else {
-                value = resultSet.getObject(field.mColumn, type);
+                try {
+                    value = resultSet.getObject(field.mColumn, type);
+                } catch (SQLException e) {
+                    value = null;   // 没有这一列，置空
+                }
             }
-            field.set(obj, value);
+            if (value != null) {
+                field.set(obj, value);
+            }
         }
         return obj;
     }

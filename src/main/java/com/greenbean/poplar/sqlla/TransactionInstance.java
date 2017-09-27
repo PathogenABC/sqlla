@@ -57,12 +57,26 @@ class TransactionInstance {
         return mConnection;
     }
 
+    private void closeConnection() {
+        if (mConnection != null) {
+            try {
+                mConnection.close();
+            } catch (SQLException ignored) {
+            }
+            mConnection = null;
+        }
+    }
+
     void commit() throws SQLException {
-        mConnection.commit();
+        if (mConnection != null) {
+            mConnection.commit();
+        }
     }
 
     void rollback() throws SQLException {
-        mConnection.rollback();
+        if (mConnection != null) {
+            mConnection.rollback();
+        }
     }
 
     int getTimeout() {
@@ -82,8 +96,10 @@ class TransactionInstance {
             transaction.transact();
 
             transaction.commitIfUncompleted();
+
             return new Result<>(null, true);
         } catch (Transaction.CommitAbort ca) {
+
             //noinspection unchecked
             return new Result<>((T) ca.mCommitValue, true);
         } catch (Transaction.RollbackAbort ra) {
@@ -96,6 +112,7 @@ class TransactionInstance {
             transaction.rollbackIfUncompleted();
             return new Result<>(failedVal, false, e);
         } finally {
+            closeConnection();  // close transaction connection
             transaction.setInstance(null);
             mStack.freeTransaction(this);
         }

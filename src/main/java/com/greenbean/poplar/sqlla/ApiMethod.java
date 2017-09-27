@@ -63,10 +63,10 @@ class ApiMethod {
 
         Connection conn;
         if (currentTransaction != null) {
-            conn = currentTransaction.getConnection();
+            conn = currentTransaction.getConnection();  // auto commit: false
         } else {
             conn = sqlla.getConnection();
-            conn.setAutoCommit(true);
+            conn.setAutoCommit(true);   // auto commit: true
         }
 
         System.out.println("SQLLA: " + logPrefix() + mSql + ", ARGS = " + Arrays.toString(args));
@@ -83,7 +83,13 @@ class ApiMethod {
             }
         }
 
-        return executeSqlAndHandleResult(args, ps);
+        Object result = executeSqlAndHandleResult(args, ps);
+
+        if (currentTransaction == null) {
+            conn.close();   // release c3p0 connection if not in transaction
+        }
+
+        return result;
     }
 
     private Object executeSqlAndHandleResult(Object[] args, PreparedStatement ps) throws SQLException {
