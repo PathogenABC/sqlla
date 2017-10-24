@@ -114,21 +114,31 @@ class ApiMethod {
                 }
             }
         }
+
+        String psSql = ps.toString();
         try {
             boolean query = ps.execute();
             int updateCount = ps.getUpdateCount();
             if (query) {
                 // result set
-                return handleQuerySqlResult(ps.getResultSet());
+                try {
+                    return handleQuerySqlResult(ps.getResultSet());
+                } catch (SQLException e) {
+                    throw new SqllarException(logPrefix() + "handle query sql [" + psSql + "]'s result failed", e);
+                }
             } else if (updateCount != -1) {
                 // update count
-                return handleUpdatableSqlResult(updateCount);
+                try {
+                    return handleUpdatableSqlResult(updateCount);
+                } catch (Exception e) {
+                    throw new SqllarException(logPrefix() + "handle update sql [" + psSql + "]'s result failed", e);
+                }
             } else {
                 // no result
                 return null;
             }
         } catch (SQLException e) {
-            throw new SqllarException(logPrefix() + "execute sql and handle result failed", e);
+            throw new SqllarException(logPrefix() + "execute sql [" + psSql + "] failed", e);
         }
     }
 
